@@ -1,4 +1,4 @@
-import { IHyperDoor } from '../hyperdoor.js';
+import { IHyperDoor } from '../interfaces/hyperdoor.js';
 
 /**
  * Describes a discrete state in the garage door operational cycle

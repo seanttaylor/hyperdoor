@@ -1,5 +1,5 @@
-import { IDeviceStatus } from './device-status';
-import { IDoorState } from './door-state';
+import { IDeviceStatus } from './device-status.js';
+import { IDoorState } from './door-state.js';
 
 /**
  * @typedef IHyperDoor
