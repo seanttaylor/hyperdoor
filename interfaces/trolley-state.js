@@ -1,5 +1,5 @@
 import { TROLLEY_DIRECTION } from '../enums/trolley-direction';
-import { IHDTrolley } from './trolley';
+import { IHDTrolley } from '../states/trolley';
 
 /**
  * @typedef IHDTrolleyState
