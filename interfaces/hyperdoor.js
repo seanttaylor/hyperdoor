@@ -1,12 +1,12 @@
 import { IDeviceStatus } from './device-status.js';
-import { IDoorState } from './door-state.js';
+import { IHyperDoorState } from './door-state.js';
 
 /**
  * @typedef IHyperDoor
  * @property {String} deviceName
  * @property {EventTarget} events
  * @property {String} id
- * @property {IDoorState} state
+ * @property {IHyperDoorState} state
  * @property {Object} settings
  * @property {String} applicationVersion
  * @property {String} createdDate

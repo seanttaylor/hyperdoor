@@ -12,7 +12,7 @@ import { TROLLEY_DIRECTION } from './enums/trolley-direction.js';
 /******** GLOBAL INTERFACES ********/
 import { IDeviceStatus } from './interfaces/device-status.js';
 import { IHyperDoor } from './interfaces/hyperdoor.js';
-import { IDoorState } from './interfaces/door-state.js';
+import { IHyperDoorState } from './interfaces/door-state.js';
 import { IHyperDoorEvent } from './interfaces/hyperdoor-event.js';
 import { IHDTrolley } from './interfaces/trolley.js';
 
@@ -171,7 +171,7 @@ class HyperDoor {
   }
 
   /**
-   * @param {IDoorState} state
+   * @param {IHyperDoorState} state
    */
   setState(state) {
     console.log(state);

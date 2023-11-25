@@ -1,30 +1,34 @@
+import { IHyperDoorState } from '../interfaces/door-state.js';
 import { IHyperDoor } from '../interfaces/hyperdoor.js';
 
 /**
  * Describes a discrete state in the garage door operational cycle
  */
 class DoorState {
-  statusMessage;
   name;
+  statusMessage;
   timestamp;
 
   /**
    * Runs the specified logic when `open`
    * method is called in this state
-   * @returns {IHyperDoor}
+   * @returns {IHyperDoorState}
    */
   open() {}
 
   /**
    * Runs the specified logic when `close`
    * method is called in this state
-   * @returns {IHyperDoor}
+   * @returns {IHyperDoorState}
    */
   close() {}
 }
 
 export class DoorOpenState extends DoorState {
   #door;
+  name;
+  statusMessage;
+  timestamp;
 
   /**
    * @param {IHyperDoor} hd
@@ -32,8 +36,14 @@ export class DoorOpenState extends DoorState {
   constructor(hd) {
     super();
 
-    this.timestamp = new Date().toISOString();
     this.#door = hd;
+    this.name = 'self:status:running;mode:normal;ops:opening';
+    this.statusMessage = 'Door is opening...';
+    this.timestamp = new Date().toISOString();
+
+    this.#door.events.dispatchEvent(
+      new CustomEvent('evt.hyperdoor.door_open_request_received')
+    );
   }
 
   /**
@@ -42,31 +52,25 @@ export class DoorOpenState extends DoorState {
    * @returns {IHyperDoor}
    */
   open() {
-    if (this.name === 'running:opening') {
-      console.info('Door is already opening.');
-      return this.#door;
-    }
-
-    this.name = 'self:running:opening';
-    this.statusMessage = 'Door is opening...';
-    this.#door.events.dispatchEvent(
-      new CustomEvent('evt.hyperdoor.door_open_request_received')
-    );
-    return this.#door;
+    //console.info('Door is already opening.');
+    return this;
   }
 
   /**
    * Runs the specified logic when `close` method is
    * called in this state
-   * @returns {IHyperDoor}
+   * @returns {IHyperDoorState}
    */
   close() {
-    console.log('Door is already closed.');
+    return new DoorCloseState(this.#door);
   }
 }
 
 export class DoorCloseState extends DoorState {
   #door;
+  name;
+  statusMessage;
+  timestamp;
 
   /**
    * @param {IHyperDoor} hd
@@ -74,40 +78,41 @@ export class DoorCloseState extends DoorState {
   constructor(hd) {
     super();
 
-    this.timestamp = new Date().toISOString();
     this.#door = hd;
+    this.name = 'self:status:running;mode:normal;ops:closing';
+    this.statusMessage = 'Door is closing...';
+    this.timestamp = new Date().toISOString();
+
+    this.#door.events.dispatchEvent(
+      new CustomEvent('evt.hyperdoor.door_close_request_received')
+    );
   }
 
   /**
    * Runs the specified logic when `open` method is
    * called in this state
-   * @returns {IHyperDoor}
+   * @returns {IHyperDoorState}
    */
   open() {
-    console.info('Door is already open.');
+    return new DoorOpenState(this.#door);
   }
 
   /**
    * Runs the specified logic when `close` method is
    * called in this state
-   * @returns {IHyperDoor}
+   * @returns {IHyperDoorState}
    */
   close() {
-    if (this.name === 'self:running:closing') {
-      console.info('Door is already closing.');
-      return;
-    }
-    this.name = 'self:running:closing';
-    this.statusMessage = 'Door is closing...';
-    this.#door.events.dispatchEvent(
-      new CustomEvent('evt.hyperdoor.door_close_request_received')
-    );
-    return this.#door;
+    //console.info('Door is already closing.');
+    return this;
   }
 }
 
 export class DoorFaultState extends DoorState {
   #door;
+  name;
+  statusMessage;
+  timestamp;
 
   /**
    * @param {IHyperDoor} hd
@@ -116,10 +121,10 @@ export class DoorFaultState extends DoorState {
   constructor(hd, error) {
     super();
 
-    this.name = 'self:error';
+    this.#door = hd;
+    this.name = 'self:status:error;mode:normal;ops:null';
     this.statusMessage = error.message;
     this.timestamp = new Date().toISOString();
-    this.#door = hd;
   }
 
   /**
@@ -128,7 +133,8 @@ export class DoorFaultState extends DoorState {
    * @returns {IHyperDoor}
    */
   open() {
-    console.error('There was an error opening/closing the door.');
+    //console.error('There was an error opening/closing the door.');
+    return this.#door;
   }
 
   /**
@@ -137,7 +143,7 @@ export class DoorFaultState extends DoorState {
    * @returns {IHyperDoor}
    */
   close() {
-    console.error('There was an error closing the door.');
+    //console.error('There was an error closing the door.');
     return this.#door;
   }
 }

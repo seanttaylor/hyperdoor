@@ -1,5 +1,5 @@
-import { TROLLEY_DIRECTION } from "../enums/trolley-direction";
-import { IHDTrolley } from "../interfaces/trolley";
+import { TROLLEY_DIRECTION } from '../enums/trolley-direction.js';
+import { IHDTrolley } from '../interfaces/trolley.js';
 
 /**
  *
@@ -12,7 +12,7 @@ class HDTrolleyState {
   timestamp;
 
   /**
-   * @param {HDTrolley} hdt
+   * @param {IHDTrolley} hdt
    */
   constructor(hdt) {
     this.timestamp = new Date().toISOString();
@@ -20,13 +20,14 @@ class HDTrolleyState {
 
   /**
    * @param {TROLLEY_DIRECTION} direction
+   * @returns {IHDTrolley}
    */
   start(direction) {
 
   }
 
   /**
-   * 
+   * @returns {IHDTrolley}
    */
   stop() {
 
@@ -42,7 +43,7 @@ export class HDTrolleyIdleState extends HDTrolleyState {
   timestamp;
 
   /**
-   * @param {HDTrolley} hdt
+   * @param {IHDTrolley} hdt
    */
   constructor(hdt) {
     super();
@@ -78,26 +79,32 @@ export class HDTrolleyMovingState extends HDTrolleyState {
   statusMessage;
 
   /**
-   * @param {HDTrolley} hdt
+   * @param {IHDTrolley} hdt
    */
   constructor(hdt) {
     super();
 
-    this.name = 'self:running:moving';
+    this.name = 'self:status:running;mode:normal;ops:moving';
     this.mode = 'normal';
     this.statusMessage = 'Trolley is in motion...';
     this.timestamp = new Date().toISOString();
     this.#trolley = hdt;
   }
 
+  /**
+   * @returns {IHDTrolley}
+   */
   stop() {
     this.statusMessage = 'Trolley is idle.';
     this.name = 'self:idle';
     return this.#trolley;
   }
 
+  /**
+   * @returns {IHDTrolley}
+   */
   start() {
-    console.info('Trolley is already in  motion...');
+    //console.info('Trolley is already in  motion...');
     return this.#trolley;
   }
 }

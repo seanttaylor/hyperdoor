@@ -7,7 +7,7 @@
     "node-petname": "^1.0.1"
   },
   "scripts": {
-    "test": "./node_modules/.bin/jest --coverage true --detectOpenHandles"
+    "test:unit": "./node_modules/.bin/jest --coverage true --detectOpenHandles"
   },
   "type": "module",
   "devDependencies": {
