@@ -1,0 +1,10 @@
+{
+  "name": "js",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "firebase-auto-ids": "^1.1.0",
+    "node-petname": "^1.0.1"
+  },
+  "type": "module"
+}
