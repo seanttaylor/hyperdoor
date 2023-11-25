@@ -14,10 +14,22 @@ import { IDeviceStatus } from './interfaces/device-status.js';
 import { IHyperDoor } from './interfaces/hyperdoor.js';
 import { IDoorState } from './interfaces/door-state.js';
 import { IHyperDoorEvent } from './interfaces/hyperdoor-event.js';
+import { IHDTrolley } from './interfaces/trolley.js';
 
 /******** LOCAL INTERFACES ********/
 
 /**
+ * Config map for initializing new HyperDoor instances
+ * @typedef HyperDoorConfigurationObject
+ * @property {EventTarget} events
+ * @property {String} [name] - Optional name property
+ * @property {Object} [settings] - Optional settings object
+ * @property {IHDTrolley} trolley
+ */
+
+/**
+ * A specified interface for capturing application events; always
+ * used as the value for the `detail` property of a CustomEvent
  * @typedef IHyperDoorEventConfiguration
  * @property {IHyperDoorEvent} detail
  */
@@ -36,16 +48,16 @@ class HyperDoor {
   #trolley;
 
   /**
-   * @param {EventTarget} events
-   * @param {HDTrolley} trolley
+   * @param {HyperDoorConfigurationObject} config
+   * 
    */
-  constructor({ events, name = petname(2, '-'), settings = {}, trolley } = {}) {
+  constructor(config) {
     this.id = generateId(new Date().getTime());
-    this.deviceName = name;
-    this.events = events;
-    this.settings = settings;
+    this.deviceName = config.name || petname(2, '-');
+    this.events = config.events;
+    this.settings = config.settings || {};
     this.state = {};
-    this.#trolley = trolley;
+    this.#trolley = config.trolley;
 
     events.addEventListener(
       'evt.hyperdoor.door_open_request_received',
@@ -69,6 +81,8 @@ class HyperDoor {
   }
 
   /**
+   * Takes the CustomEvent interface; handles requests to 
+   * open the door
    * @param {IHyperDoorEventConfiguration} detail
    */
   #onDoorOpenRequest({ detail }) {
@@ -81,6 +95,8 @@ class HyperDoor {
   }
 
   /**
+   * Takes the CustomEvent interface; handles any 
+   * errors detected during door's operations
    * @param {IHyperDoorEventConfiguration} detail
    */
   #onDoorError({ detail }) {
@@ -93,13 +109,15 @@ class HyperDoor {
   }
 
   /**
+   * Takes the CustomEvent interface; handles notifications from 
+   * the door's limit switches
    * @param {IHyperDoorEventConfiguration} detail
    */
   #onLimitSwitchEngaged({ detail }) {
     const { state: trolleyState } = this.#trolley.stop();
     const { state: doorState } = this;
 
-    doorState.name = 'self:console.log(open';
+    doorState.name = 'self:open';
 
     console.info('Trolley stopping...', {
       door: doorState,
@@ -108,6 +126,8 @@ class HyperDoor {
   }
 
   /**
+   * Takes the CustomEvent interface; handles requests to 
+   * close the door
    * @param {IHyperDoorEventConfiguration} detail
    */
   #onDoorClosedRequest({ detail }) {
@@ -119,7 +139,8 @@ class HyperDoor {
     });
   }
 
-  /******** PUBLIC API ********/
+  /******** PUB * @property {String} [name] - Optional name property.
+ * @property {Object} [settings] - Optional settings object.LIC API ********/
 
   /**
    * @returns {IHyperDoor}

@@ -6,5 +6,12 @@
     "firebase-auto-ids": "^1.1.0",
     "node-petname": "^1.0.1"
   },
-  "type": "module"
+  "scripts": {
+    "test": "./node_modules/.bin/jest --coverage true --detectOpenHandles"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@babel/preset-env": "^7.23.3",
+    "jest": "^29.7.0"
+  }
 }
