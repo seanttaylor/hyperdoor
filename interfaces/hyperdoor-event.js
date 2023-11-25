@@ -1,5 +1,5 @@
 /**
- * @typedef {EventHeader}
+ * @typedef EventHeader
  * @property {String} name
  * @property {String} schema
  * @property {String} timestamp

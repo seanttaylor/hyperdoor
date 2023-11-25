@@ -1,5 +1,5 @@
-import { TROLLEY_DIRECTION } from '../enums/trolley-direction';
-import { IHDTrolley } from '../states/trolley';
+import { TROLLEY_DIRECTION } from '../enums/trolley-direction.js';
+import { IHDTrolley } from '../interfaces/trolley.js';
 
 /**
  * @typedef IHDTrolleyState

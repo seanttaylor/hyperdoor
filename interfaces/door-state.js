@@ -1,4 +1,4 @@
-import { IHyperDoor } from './hyperdoor';
+import { IHyperDoor } from './hyperdoor.js';
 
 /**
  * Interface for describing a discrete state in the garage
