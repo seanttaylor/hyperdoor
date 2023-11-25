@@ -1,4 +1,4 @@
-import { DoorOpenState, DoorCloseState, DoorFaultState } from '../../states/door.js';
+import { DoorOpenState, DoorCloseState, DoorFaultState, DoorIdleState } from '../../states/door.js';
 import { IHyperDoor } from '../../interfaces/hyperdoor.js';
 import { IHyperDoorState } from '../../interfaces/door-state.js';
 
@@ -25,10 +25,12 @@ describe('DoorOpenState', () => {
 
   describe('constructor', () => {
     it('Should be able to dispatch `door_close_request_received` event', () => {
-      expect(doorOpenState.statusMessage).toBe('Door is opening...');
-      expect(mockHyperDoor.events.dispatchEvent).toHaveBeenCalledWith(
-        expect.any(CustomEvent)
-      );
+      expect(doorOpenState.statusMessage).toBe('Door open');
+      setImmediate(() => {
+        expect(mockHyperDoor.events.dispatchEvent).toHaveBeenCalledWith(
+          expect.any(CustomEvent)
+        );
+      })
     });
   });
 
@@ -37,17 +39,19 @@ describe('DoorOpenState', () => {
       doorOpenState.name = ''; // Ensure door is not in 'running:opening' state
       doorOpenState.open();
 
-      expect(doorOpenState.statusMessage).toBe('Door is opening...');
-      expect(mockHyperDoor.events.dispatchEvent).toHaveBeenCalledWith(
-        expect.any(CustomEvent)
-      );
+      expect(doorOpenState.statusMessage).toBe('Door open');
+      setImmediate(() => {
+        expect(mockHyperDoor.events.dispatchEvent).toHaveBeenCalledWith(
+          expect.any(CustomEvent)
+        );
+      })
     });
 
     it('Should be able to indicate door is already opening if in `self:running:opening` state', () => {
       doorOpenState.name = 'self:status:running;mode:normal;ops:opening';
       doorOpenState.open();
 
-      expect(doorOpenState.statusMessage).toBe('Door is opening...');
+      expect(doorOpenState.statusMessage).toBe('Door open');
       expect(doorOpenState.name).toBe('self:status:running;mode:normal;ops:opening');
     });
   });
@@ -97,7 +101,7 @@ describe('DoorCloseState', () => {
       const newState = doorCloseState.open();
 
       expect(newState).toBeInstanceOf(DoorOpenState);
-      expect(newState.statusMessage).toBe('Door is opening...');
+      expect(newState.statusMessage).toBe('Door open');
       expect(newState.name).toBe('self:status:running;mode:normal;ops:opening');
     });
   });
@@ -155,6 +159,43 @@ describe('DoorFaultState', () => {
     it('Should be able to indicate when an error interrupts closing', () => {
       doorFaultState.close();
       expect(doorFaultState.name).toBe('self:status:error;mode:normal;ops:null');
+    });
+  });
+});
+
+describe('DoorIdleState', () => {
+  /**
+   * @type {IHyperDoor}
+   */
+  let mockHyperDoor;
+  /**
+   * @type {IHyperDoorState}
+   */
+  let doorIdleState;
+
+  beforeEach(() => {
+    mockHyperDoor = {
+      events: {
+        dispatchEvent: jest.fn()
+      }
+    };
+
+    doorIdleState = new DoorIdleState(mockHyperDoor);
+  });
+
+  describe('open', () => {
+    it('Should be able to transition to DoorOpenState', () => {
+      const newState = doorIdleState.open();
+
+      expect(newState).toBeInstanceOf(DoorOpenState);
+    });
+  });
+
+  describe('close', () => {
+    it('Should be able to transition to DoorCloseState', () => {
+      const newState = doorIdleState.close();
+
+      expect(newState).toBeInstanceOf(DoorCloseState);
     });
   });
 });

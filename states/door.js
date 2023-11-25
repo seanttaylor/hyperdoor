@@ -38,9 +38,10 @@ export class DoorOpenState extends DoorState {
 
     this.#door = hd;
     this.name = 'self:status:running;mode:normal;ops:opening';
-    this.statusMessage = 'Door is opening...';
+    this.statusMessage = 'Door open';
     this.timestamp = new Date().toISOString();
-
+    
+    
     this.#door.events.dispatchEvent(
       new CustomEvent('evt.hyperdoor.door_open_request_received')
     );
@@ -145,5 +146,42 @@ export class DoorFaultState extends DoorState {
   close() {
     //console.error('There was an error closing the door.');
     return this.#door;
+  }
+}
+
+export class DoorIdleState extends DoorState {
+  #door;
+  name;
+  statusMessage;
+  timestamp;
+
+  /**
+   * @param {IHyperDoor} hd
+   */
+  constructor(hd) {
+    super();
+
+    this.#door = hd;
+    this.name = 'self:status:running;mode:normal;ops:null';
+    this.statusMessage = 'Door idle';
+    this.timestamp = new Date().toISOString();
+  }
+
+  /**
+   * Runs the specified logic when `open` method
+   * is called in this state
+   * @returns {IHyperDoorState}
+   */
+  open() {
+    return new DoorOpenState(this.#door);
+  }
+
+  /**
+   * Runs the specified logic when `close` method
+   * is called in this state
+   * @returns {IHyperDoorState}
+   */
+  close() {
+    return new DoorCloseState(this.#door);
   }
 }

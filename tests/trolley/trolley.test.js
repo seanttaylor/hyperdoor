@@ -72,7 +72,7 @@ describe('HDTrolleyMovingState', () => {
       const result = movingState.stop();
       
       expect(movingState.statusMessage).toBe('Trolley is idle.');
-      expect(movingState.name).toBe('self:idle');
+      expect(movingState.name).toBe('self:status:running;mode:normal;ops:null');
       expect(result).toBe(mockTrolley);
     });
   });

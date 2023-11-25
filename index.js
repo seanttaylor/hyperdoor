@@ -4,6 +4,7 @@ import {
   DoorOpenState,
   DoorCloseState,
   DoorFaultState,
+  DoorIdleState
 } from './states/door.js';
 import { HDTrolleyIdleState, HDTrolleyMovingState } from './states/trolley.js';
 
@@ -56,7 +57,7 @@ class HyperDoor {
     this.deviceName = config.name || petname(2, '-');
     this.events = config.events;
     this.settings = config.settings || {};
-    this.state = {};
+    this.state = new DoorIdleState(this);
     this.#trolley = config.trolley;
 
     events.addEventListener(
@@ -117,7 +118,7 @@ class HyperDoor {
     const { state: trolleyState } = this.#trolley.stop();
     const { state: doorState } = this;
 
-    doorState.name = 'self:open';
+    doorState.name = 'self:status:running;mode:normal:ops:braking';
 
     console.info('Trolley stopping...', {
       door: doorState,
@@ -139,19 +140,19 @@ class HyperDoor {
     });
   }
 
-  /******** PUB * @property {String} [name] - Optional name property.
- * @property {Object} [settings] - Optional settings object.LIC API ********/
+  /******** PUBLIC API ********/
 
   /**
    * @returns {IHyperDoor}
    */
   open() {
     try {
-      this.state = new DoorOpenState(this);
-      return this.state.open();
+      const updatedState = new DoorOpenState(this);
+      this.state = updatedState;
+      return this;
     } catch (e) {
       this.state = new DoorFaultState(this);
-      return this.state.open();
+      return this;
     }
   }
 
@@ -203,10 +204,11 @@ class HDTrolley {
   }
 
   /**
+   * @param {TROLLEY_DIRECTION} direction
    * @returns {HDTrolley}
    */
-  start() {
-    this.state = new HDTrolleyMovingState(this);
+  start(direction) {
+    this.state = new HDTrolleyMovingState(this, direction);
     return this;
   }
 
@@ -250,10 +252,13 @@ const hd = new HyperDoor({
   trolley: new HDTrolley(),
 });
 
-console.log(hd.open());
+hd.open();
 
-events.dispatchEvent(
-  new HyperDoorEvent('evt.switches.limit_engaged', {
-    name: 'open',
-  })
-);
+setTimeout(() => {
+  events.dispatchEvent(
+    new HyperDoorEvent('evt.switches.limit_engaged', {
+      name: 'open',
+    })
+  );
+}, 3000);
+

@@ -75,15 +75,20 @@ export class HDTrolleyIdleState extends HDTrolleyState {
 
 export class HDTrolleyMovingState extends HDTrolleyState {
   #trolley;
+  direction;
+  mode;
   name;
   statusMessage;
+  timestamp;
 
   /**
    * @param {IHDTrolley} hdt
+   * @param {TROLLEY_DIRECTION} direction
    */
-  constructor(hdt) {
+  constructor(hdt, direction=null) {
     super();
 
+    this.direction = direction;
     this.name = 'self:status:running;mode:normal;ops:moving';
     this.mode = 'normal';
     this.statusMessage = 'Trolley is in motion...';
@@ -96,14 +101,16 @@ export class HDTrolleyMovingState extends HDTrolleyState {
    */
   stop() {
     this.statusMessage = 'Trolley is idle.';
-    this.name = 'self:idle';
+    this.name = 'self:status:running;mode:normal;ops:null';
     return this.#trolley;
   }
 
   /**
+   * @param {TROLLEY_DIRECTION} direction
    * @returns {IHDTrolley}
    */
-  start() {
+  start(direction) {
+    this.direction = direction;
     //console.info('Trolley is already in  motion...');
     return this.#trolley;
   }
