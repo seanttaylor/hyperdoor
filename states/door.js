@@ -35,7 +35,6 @@ export class DoorOpenState extends DoorState {
    */
   constructor(hd) {
     super();
-
     this.#door = hd;
     this.name = 'self:status:running;mode:normal;ops:opening';
     this.statusMessage = 'Door open';
