@@ -7,6 +7,7 @@ import {
   DoorIdleState
 } from './states/door.js';
 import { HDTrolleyIdleState, HDTrolleyMovingState } from './states/trolley.js';
+import { ActivityIndicator } from './lib/activity-indicator.js';
 
 import { TROLLEY_DIRECTION } from './enums/trolley-direction.js';
 
@@ -246,7 +247,16 @@ class HyperDoorEvent {
 
 /******** MAIN ********/
 
+/**
+ * @type {IGPIO}
+ */
+const myLED = {
+  writeSync() {},
+  readSync() {},
+};
+
 const events = new EventTarget();
+const activityIndicator = new ActivityIndicator(events, myLED);
 const hd = new HyperDoor({
   events,
   trolley: new HDTrolley(),

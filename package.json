@@ -4,7 +4,8 @@
   "private": true,
   "dependencies": {
     "firebase-auto-ids": "^1.1.0",
-    "node-petname": "^1.0.1"
+    "node-petname": "^1.0.1",
+    "onoff": "^6.0.3"
   },
   "scripts": {
     "start": "node index.js",
