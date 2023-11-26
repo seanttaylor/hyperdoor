@@ -1,5 +1,6 @@
 import petname from 'node-petname';
 import generateId from 'firebase-auto-ids';
+import { Gpio } from 'onoff';
 import {
   DoorOpenState,
   DoorCloseState,
@@ -17,6 +18,7 @@ import { IHyperDoor } from './interfaces/hyperdoor.js';
 import { IHyperDoorState } from './interfaces/door-state.js';
 import { IHyperDoorEvent } from './interfaces/hyperdoor-event.js';
 import { IHDTrolley } from './interfaces/trolley.js';
+import { IGPIO } from './interfaces/gpio.js';
 
 /******** LOCAL INTERFACES ********/
 
@@ -255,8 +257,10 @@ const myLED = {
   readSync() {},
 };
 
+const LED = new Gpio(4, 'out'); //use GPIO pin 4, and specify that it is output
 const events = new EventTarget();
-const activityIndicator = new ActivityIndicator(events, myLED);
+const activityIndicator = new ActivityIndicator(events, LED);
+
 const hd = new HyperDoor({
   events,
   trolley: new HDTrolley(),
