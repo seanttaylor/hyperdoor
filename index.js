@@ -247,19 +247,28 @@ class HyperDoorEvent {
   }
 }
 
+/**
+ * Handler for key signal events to
+ * ensure any resources are properly disposed and
+ * and physical components are reset to the
+ * most appropriate state 
+ * @param {IGPIO} myLED
+ */
+function teardownResources(myLED) {
+  return function() {
+    myLED.writeSync(0);
+    console.log('tearing down...')
+    myLED.unexport();
+  }
+}
+
 /******** MAIN ********/
 
-/**
- * @type {IGPIO}
- */
-const myLED = {
-  writeSync() {},
-  readSync() {},
-};
-
-const LED = new Gpio(4, 'out'); //use GPIO pin 4, and specify that it is output
+const LED = new Gpio(19, 'out');
 const events = new EventTarget();
 const activityIndicator = new ActivityIndicator(events, LED);
+
+const onResourceTeardown = teardownResources(LED);
 
 const hd = new HyperDoor({
   events,
@@ -275,4 +284,27 @@ setTimeout(() => {
     })
   );
 }, 3000);
+
+
+setTimeout(() => {
+  events.dispatchEvent(
+    new HyperDoorEvent('evt.switches.limit_disengaged', {
+      name: 'open',
+    })
+  );
+}, 9000);
+
+/******** PROGRAM TEARDOWN ********/
+
+// Ensure resource teardown/cleanup on specified signals
+process.on('exit', onResourceTeardown);
+process.on('SIGINT', onResourceTeardown);
+process.on('SIGTERM', onResourceTeardown);
+
+// Ensure resource teardown/cleanup on uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error(`Uncaught Exception: ${err.message}`);
+  onResourceTeardown();
+  process.exit(1);
+});
 

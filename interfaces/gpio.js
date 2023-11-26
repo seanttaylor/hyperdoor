@@ -17,4 +17,12 @@ export class IGPIO {
    * @param {Number} value - either a 0 or 1
    */
   writeSync(value) {}
+
+  /**
+   * Frees any resources associated with
+   * this instance
+   */
+  unexport() {
+
+  }
 }
