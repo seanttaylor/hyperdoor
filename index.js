@@ -9,6 +9,7 @@ import {
 } from './states/door.js';
 import { HDTrolleyIdleState, HDTrolleyMovingState } from './states/trolley.js';
 import { ActivityIndicator } from './lib/activity-indicator.js';
+import { LimitSwitch } from './lib/limit-switch.js';
 
 import { TROLLEY_DIRECTION } from './enums/trolley-direction.js';
 
@@ -19,6 +20,7 @@ import { IHyperDoorState } from './interfaces/door-state.js';
 import { IHyperDoorEvent } from './interfaces/hyperdoor-event.js';
 import { IHDTrolley } from './interfaces/trolley.js';
 import { IGPIO } from './interfaces/gpio.js';
+import { ILimitSwitch } from './interfaces/limit-switch.js';
 
 /******** LOCAL INTERFACES ********/
 
@@ -39,9 +41,9 @@ import { IGPIO } from './interfaces/gpio.js';
  */
 
 /**
- *
+ * 
  */
-class HyperDoor {
+class HyperDoor extends IHyperDoor {
   deviceName;
   events;
   id;
@@ -257,7 +259,6 @@ class HyperDoorEvent {
 function teardownResources(myLED) {
   return function() {
     myLED.writeSync(0);
-    console.log('tearing down...')
     myLED.unexport();
   }
 }
@@ -267,7 +268,9 @@ function teardownResources(myLED) {
 const LED = new Gpio(19, 'out');
 const events = new EventTarget();
 const activityIndicator = new ActivityIndicator(events, LED);
-
+const openLimitSwitch = new LimitSwitch('foo-bar', button, LED, (button, LED) => {
+  button.watch()
+});
 const onResourceTeardown = teardownResources(LED);
 
 const hd = new HyperDoor({
