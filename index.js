@@ -58,6 +58,7 @@ class HyperDoor extends IHyperDoor {
    * 
    */
   constructor(config) {
+    super();
     this.id = generateId(new Date().getTime());
     this.deviceName = config.name || petname(2, '-');
     this.events = config.events;
@@ -177,7 +178,7 @@ class HyperDoor extends IHyperDoor {
   }
 
   /**
-   * @param {IHyperDoorState} state
+   * 
    */
   setState(state) {
     console.log(state);
@@ -263,15 +264,76 @@ function teardownResources(myLED) {
   }
 }
 
-/******** MAIN ********/
+/**
+ * @type {IGPIO}
+ */
+const LED_DOOR_CLOSE = {
+  writeSync() {},
+  readSync() {},
+  unexport() {},
+  watch() {}
+};
 
-const LED = new Gpio(19, 'out');
+/**
+ * @type {IGPIO}
+ */
+const LED_DOOR_OPEN = {
+  writeSync() {},
+  readSync() {},
+  unexport() {},
+  watch() {}
+};
+
+/**
+ * @type {IGPIO}
+ */
+const BTN_LIMIT_SWITCH_DOOR_OPEN = {
+  writeSync() {},
+  readSync() {},
+  unexport() {},
+  watch(fn) {
+    fn();
+  }
+};
+
+/**
+ * @type {IGPIO}
+ */
+const BTN_LIMIT_SWITCH_DOOR_CLOSE = {
+  writeSync() {},
+  readSync() {},
+  unexport() {},
+  watch(fn) {
+    fn();
+  }
+};
+
+
+/******** PROGRAM START ********/
+
+/******** GPIO CONFIG ********/
+//const LED = new Gpio(19, 'out');
+
+
 const events = new EventTarget();
-const activityIndicator = new ActivityIndicator(events, LED);
-const openLimitSwitch = new LimitSwitch('foo-bar', button, LED, (button, LED) => {
-  button.watch()
-});
-const onResourceTeardown = teardownResources(LED);
+const activityIndicator = new ActivityIndicator(events, LED_DOOR_OPEN);
+
+/******** LIMIT SWITCHES ********/
+const doorOpenLimitSwitch = new LimitSwitch(
+  'open-limit-switch', 
+  BTN_LIMIT_SWITCH_DOOR_OPEN, 
+  LED_DOOR_OPEN,
+  LimitSwitch.onSwitch
+);
+
+const doorCloseLimitSwitch = new LimitSwitch(
+  'close-limit-switch', 
+  BTN_LIMIT_SWITCH_DOOR_CLOSE, 
+  LED_DOOR_CLOSE,
+  LimitSwitch.onSwitch
+);
+
+const onResourceTeardown = teardownResources(LED_DOOR_OPEN);
 
 const hd = new HyperDoor({
   events,
@@ -279,6 +341,7 @@ const hd = new HyperDoor({
 });
 
 hd.open();
+hd.
 
 setTimeout(() => {
   events.dispatchEvent(

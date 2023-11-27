@@ -25,4 +25,14 @@ export class IGPIO {
   unexport() {
 
   }
+
+  /**
+   * Takes a callback that gets two arguments (err, value), where err is 
+   * reserved for an error object and value is 
+   * the number 0 or 1 and represents the state of the GPIO
+   * @param {Function} callback - function to execute on button inputs
+   */
+  watch(callback) {
+
+  }
 }
