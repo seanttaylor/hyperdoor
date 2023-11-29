@@ -10,6 +10,7 @@ import {
 import { HDTrolleyIdleState, HDTrolleyMovingState } from './states/trolley.js';
 import { ActivityIndicator } from './lib/activity-indicator.js';
 import { LimitSwitch } from './lib/limit-switch.js';
+import { HyperDoorEvent } from './lib/hyperdoor-event.js';
 
 import { TROLLEY_DIRECTION } from './enums/trolley-direction.js';
 
@@ -21,6 +22,14 @@ import { IHyperDoorEvent } from './interfaces/hyperdoor-event.js';
 import { IHDTrolley } from './interfaces/trolley.js';
 import { IGPIO } from './interfaces/gpio.js';
 import { ILimitSwitch } from './interfaces/limit-switch.js';
+import { GPIOFactory } from './factories/gpio.js';
+
+
+const componentState = {
+  'open-limit-switch': {
+    engaged: null
+  }
+};
 
 /******** LOCAL INTERFACES ********/
 
@@ -66,22 +75,22 @@ class HyperDoor extends IHyperDoor {
     this.state = new DoorIdleState(this);
     this.#trolley = config.trolley;
 
-    events.addEventListener(
+    config.events.addEventListener(
       'evt.hyperdoor.door_open_request_received',
       this.#onDoorOpenRequest.bind(this)
     );
 
-    events.addEventListener(
+    config.events.addEventListener(
       'evt.hyperdoor.door_close_request_received',
       this.#onDoorClosedRequest.bind(this)
     );
 
-    events.addEventListener(
+    config.events.addEventListener(
       'evt.hyperdoor.door_error',
       this.#onDoorError.bind(this)
     );
 
-    events.addEventListener(
+    config.events.addEventListener(
       'evt.switches.limit_engaged',
       this.#onLimitSwitchEngaged.bind(this)
     );
@@ -168,12 +177,12 @@ class HyperDoor extends IHyperDoor {
   close() {
     try {
       this.state = new DoorCloseState(this);
-      return this.state.close();
+      return this;
     } catch (e) {
       //console.error(e);
       this.state = new DoorFaultState(this, e);
       this.events.dispatchEvent(new HyperDoorEvent('evt.hyperdoor.door_error'));
-      return this.state.close();
+      return this;
     }
   }
 
@@ -228,29 +237,6 @@ class HDTrolley {
 }
 
 /**
- * A wrapper for the CustomEvent interface
- */
-class HyperDoorEvent {
-  /**
-   * @param {String} name
-   * @param {Object} payload
-   */
-  constructor(name, payload = {}) {
-    const event = new CustomEvent(name, {
-      detail: {
-        header: {
-          name,
-          timestamp: new Date().toISOString(),
-          schema: null,
-        },
-        payload: payload || {},
-      },
-    });
-    return event;
-  }
-}
-
-/**
  * Handler for key signal events to
  * ensure any resources are properly disposed and
  * and physical components are reset to the
@@ -265,97 +251,94 @@ function teardownResources(myLED) {
 }
 
 /**
- * @type {IGPIO}
+ * Mock watch method for the GPIO interface;
+ * just immediately executes whatever function is passed
+ * @param {Function} fn
  */
-const LED_DOOR_CLOSE = {
-  writeSync() {},
-  readSync() {},
-  unexport() {},
-  watch() {}
-};
+function onWatch(fn) {
+  fn(null, 0);
+}
+
+function onLimitSwitchEvent(ctx, error, value) {
+  const { name } = ctx; 
+  componentState[name].engaged = Boolean(value);
+}
 
 /**
  * @type {IGPIO}
  */
-const LED_DOOR_OPEN = {
-  writeSync() {},
-  readSync() {},
-  unexport() {},
-  watch() {}
-};
+const LED_DOOR_CLOSE = GPIOFactory.create();
 
 /**
  * @type {IGPIO}
  */
-const BTN_LIMIT_SWITCH_DOOR_OPEN = {
-  writeSync() {},
-  readSync() {},
-  unexport() {},
-  watch(fn) {
-    fn();
-  }
-};
+const LED_DOOR_OPEN = GPIOFactory.create();
 
 /**
  * @type {IGPIO}
  */
-const BTN_LIMIT_SWITCH_DOOR_CLOSE = {
-  writeSync() {},
-  readSync() {},
-  unexport() {},
-  watch(fn) {
-    fn();
-  }
-};
+const BTN_LIMIT_SWITCH_DOOR_OPEN = Object.assign(
+  GPIOFactory.create(), { 
+  watch: onWatch
+})
 
-
-/******** PROGRAM START ********/
+/**
+ * @type {IGPIO}
+ */
+const BTN_LIMIT_SWITCH_DOOR_CLOSE = Object.assign(
+  GPIOFactory.create(), {
+  watch: onWatch
+});
 
 /******** GPIO CONFIG ********/
 //const LED = new Gpio(19, 'out');
 
-
-const events = new EventTarget();
-const activityIndicator = new ActivityIndicator(events, LED_DOOR_OPEN);
+const eventBus = new EventTarget();
 
 /******** LIMIT SWITCHES ********/
-const doorOpenLimitSwitch = new LimitSwitch(
-  'open-limit-switch', 
-  BTN_LIMIT_SWITCH_DOOR_OPEN, 
-  LED_DOOR_OPEN,
-  LimitSwitch.onSwitch
-);
+const doorOpenLimitSwitch = new LimitSwitch({ 
+  callback: onLimitSwitchEvent, 
+  button: BTN_LIMIT_SWITCH_DOOR_OPEN, 
+  events: eventBus,
+  LED: LED_DOOR_OPEN,
+  name: 'open-limit-switch',
+})
 
-const doorCloseLimitSwitch = new LimitSwitch(
-  'close-limit-switch', 
-  BTN_LIMIT_SWITCH_DOOR_CLOSE, 
-  LED_DOOR_CLOSE,
-  LimitSwitch.onSwitch
-);
+const doorCloseLimitSwitch = new LimitSwitch({
+  callback: LimitSwitch.onSwitch,
+  button: BTN_LIMIT_SWITCH_DOOR_CLOSE,
+  events: eventBus, 
+  LED: LED_DOOR_CLOSE,
+  name: 'close-limit-switch' 
+});
+
+/******** EVENT REGISTRATION ********/
+
 
 const onResourceTeardown = teardownResources(LED_DOOR_OPEN);
 
+/******** PROGRAM START ********/
+
 const hd = new HyperDoor({
-  events,
+  events: eventBus,
   trolley: new HDTrolley(),
 });
 
 hd.open();
-hd.
 
 setTimeout(() => {
-  events.dispatchEvent(
+  eventBus.dispatchEvent(
     new HyperDoorEvent('evt.switches.limit_engaged', {
-      name: 'open',
+      name: 'open-limit-switch',
     })
   );
 }, 3000);
 
 
 setTimeout(() => {
-  events.dispatchEvent(
-    new HyperDoorEvent('evt.switches.limit_disengaged', {
-      name: 'open',
+  eventBus.dispatchEvent(
+    new HyperDoorEvent('evt.switches.limit_engaged', {
+      name: 'close-limit-switch',
     })
   );
 }, 9000);

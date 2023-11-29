@@ -33,6 +33,6 @@ export class IGPIO {
    * @param {Function} callback - function to execute on button inputs
    */
   watch(callback) {
-
+    
   }
 }
